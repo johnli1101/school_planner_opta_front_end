@@ -3,6 +3,22 @@
         <v-card-text>
             <h1>プラナー</h1>
         </v-card-text>
+        <SchoolPlannerSolve @invoke-solve="passSolveSignalUp()" />  
+        <v-btn
+            color="purple lighten-2"
+            dark
+            @click="handleStopSolve()"
+        >
+            Stop Solve
+        </v-btn>
+        <SchoolPlannerNewLesson 
+            @add-new-lesson="addNewLesson($event)" 
+            :teachers="teachers"
+            :subjects="subjects"
+            :studentGroups="studentGroups"
+            :rooms="rooms"
+            :timeslots="timeslots"    
+        />
         <v-simple-table
             fixed-header
             height="100vh"
@@ -29,7 +45,6 @@
                         </td>
                         <td v-for="(lesson, key) in time"
                             :key="key"  >
-                            {{ lesson.subject }}
                             <SchoolPlannerLessonCard @updated-lesson="passLessonUp(lesson, $event)" v-if="lesson['id']" :currentSubject="subjects[lesson.subject]" :lesson="lesson" :teachers="teachers" :subjects="subjects" :studentGroups="studentGroups" :timeslots="timeslots" :rooms="rooms" />
                         </td>
                     </tr>
@@ -41,6 +56,8 @@
 
 <script>
     import SchoolPlannerLessonCard from './SchoolPlannerLessonCard';
+    import SchoolPlannerSolve from './SchoolPlannerSolve';
+    import SchoolPlannerNewLesson from './SchoolPlannerNewLesson';
 
     export default {
         data: () => ({
@@ -56,14 +73,24 @@
             ,tableArray: Object
         },
         components: {
-            SchoolPlannerLessonCard
+            SchoolPlannerLessonCard, SchoolPlannerSolve, SchoolPlannerNewLesson
         },
 
         methods: {
             //just for passing up to the Lesson Planner Level
             passLessonUp(currentLesson, alteredLesson) {
-                this.lessons = [];
                 this.$emit('update-lesson-card', alteredLesson);
+            },
+            passSolveSignalUp() {
+                this.$emit("invoke-solve");
+            },
+            addNewLesson(newLesson) {
+                console.log(newLesson);
+                this.$emit("add-new-lesson", newLesson);
+            },
+            handleStopSolve() {
+                console.log();
+                this.$emit("invoke-stop-solve");
             }
         }
     }

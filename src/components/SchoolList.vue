@@ -5,7 +5,10 @@
             <SchoolListItems v-for="(item, index) in items"
                 :key="index" 
                 :itemContent="item" 
-                @on-item-edit="editItem(item, $event)"    
+                :lessons="lessons"
+                :type="type"
+                @on-item-edit="editItem(item, $event)"
+                @on-delete-item="deleteItem(item)"
             />
         </v-list>
     </v-card>
@@ -18,10 +21,12 @@
 
     export default {
         data: () => ({
-
+            dialog: false
         }),
         props: {
             items: Object
+            ,lessons: Array
+            ,type: String
         },
         components: {
             SchoolListItems, SchoolListAddItem
@@ -29,20 +34,24 @@
         methods: {
             addItem(newItem) {
                 console.log(newItem);
-                const asArray = Object.entries(this.items);
-                let itemKeys = asArray.map(item => parseInt(item[0]));
-                let maxIndex = this.findGreatestNumber(itemKeys) + 1;
-                let newItemObject = {
-                    id: maxIndex.toString()
-                    ,name: newItem
-                }
 
-                //need to use $set for vue because of how reactivity works with objects
-                this.$set(this.items, maxIndex.toString(), newItemObject);
+                //create array to pass through emit
+                let argArr = [];
+                //argArr.push(this.items);
+                argArr.push(newItem);
+                argArr.push("post");
 
-                console.log(JSON.stringify(this.items, null, 2));
-                this.$emit("update-item-list", this.items);
+                //console.log(JSON.stringify(this.items, null, 2));
+                this.$emit("update-item-list", argArr);
 
+            },
+            deleteItem(toDeleteItem) {
+                console.log(JSON.stringify(toDeleteItem, null, 2));
+                let argArr = [];
+                argArr.push(toDeleteItem);
+                argArr.push("delete");
+                
+                this.$emit("update-item-list", argArr)
             },
             //greatest number function to help create unique ID for new item
             findGreatestNumber(arr) {
@@ -55,10 +64,14 @@
                 return greatestNumber;
             },
             editItem(currentItem, newItemDescription) {
-                console.log(newItemDescription);
                 currentItem.name = newItemDescription;
-                console.log(JSON.stringify(this.items, null, 2));
-                this.$emit("update-item-list", this.items);
+                let argArr = [];
+                let newObj = {id: currentItem.id, name: newItemDescription};
+
+                argArr.push(newObj);
+                argArr.push("put");
+
+                this.$emit("update-item-list", argArr);
             }
         }
     }

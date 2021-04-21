@@ -22,7 +22,7 @@
                         <v-select
                           :items="['0-17', '18-29', '30-54', '54+']"
                           label="Time slot"
-                          required
+                          
                         ></v-select>
                     </v-col>
 
@@ -30,7 +30,7 @@
                         <v-select
                           :items="['0-17', '18-29', '30-54', '54+']"
                           label="Room"
-                          required
+                          
                         ></v-select>
                     </v-col>
 

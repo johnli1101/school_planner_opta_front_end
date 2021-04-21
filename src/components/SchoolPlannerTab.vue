@@ -1,8 +1,13 @@
 <template>
     <v-card flat>
         <v-card-text>
-            <h1>{{title}}</h1>
-            <SchoolList @update-item-list="passItemsUp($event)" :items="items" />
+            <h1>{{title.name}}</h1>
+            <SchoolList 
+                @update-item-list="passItemsUp($event)" 
+                :items="items" 
+                :lessons="lessons"
+                :type="title.id"
+            />
         </v-card-text>
     </v-card>
 </template>
@@ -18,7 +23,8 @@
     }),
     props: {
         items: Object
-        ,title: String
+        ,title: Object
+        ,lessons: Array
     },
     components: {
         SchoolList
@@ -26,6 +32,7 @@
     methods: {
         //only for lifting the item list up to the parent level
         passItemsUp (event) {
+            console.log(event);
             this.$emit("update-item-list", event);
         }
     }

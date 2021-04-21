@@ -24,14 +24,49 @@
                     </v-tooltip>
                     <v-tooltip top> 
                         <template v-slot:activator="{ on, attrs }">
-                            <v-btn @click="$emit('on-delete-item')" v-bind="attrs" v-on="on" class="item-button" fab small dark color="indigo">
+                            <v-btn @click="handleDelete()" v-bind="attrs" v-on="on" class="item-button" fab small dark color="indigo">
                                 <v-icon dark>mdi-minus</v-icon>
                             </v-btn>
                         </template>
                         <span>Delete</span>
                     </v-tooltip>
                 </v-col>
-        </v-list-item-content>           
+        </v-list-item-content>      
+        <v-dialog
+            v-model="dialog"
+            width="50vh"
+            height="100vh"
+        >
+            <v-card>
+                <v-card-title class="headline grey lighten-2">
+                    WARNING!
+                </v-card-title>
+
+                <v-card-text>
+                    This current item <b> {{itemContent.name}} </b> is currently being used in some lessons, are you sure you want to continue?
+                </v-card-text>
+
+                <v-divider></v-divider>
+
+                <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn
+                    color="primary"
+                    text
+                    @click="handleDeleteConfirm()"
+                >
+                    Yes
+                </v-btn>
+                <v-btn
+                    color="primary"
+                    text
+                    @click="dialog = false"
+                >
+                    No
+                </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>     
     </v-list-item>
 </template>
 
@@ -41,9 +76,12 @@
     data: () => ({
         isEditing: false
         ,newItemDescription: ""
+        ,dialog: false
     }),
     props: {
         itemContent: Object
+        ,lessons: Array
+        ,type: String
     },
     methods: {
         editingItem() {
@@ -60,6 +98,34 @@
         doneEditing() {
             this.isEditing = false;
             this.$emit("on-item-edit", this.newItemDescription);
+        },
+        handleDelete() {
+            //check if the item is currently being used in other lessons
+            //start by removing the "s" from the type like teachers -> teacher
+            let typeString = this.type.slice(0, -1);
+            let toDeleteItem = this.itemContent;
+            console.log(typeString);
+            console.log(toDeleteItem);
+            console.log(this.checkIfExistsInLessons(toDeleteItem.id, typeString));
+            if(this.checkIfExistsInLessons(toDeleteItem.id, typeString)) {
+                this.dialog = true;
+            }
+            else {
+                this.$emit("on-delete-item");
+            }
+        },
+        handleDeleteConfirm() {
+            this.$emit("on-delete-item");
+            this.dialog = false;
+        },
+        checkIfExistsInLessons(id, typeString) {
+            let lessonList = this.lessons;
+            for (let lesson in lessonList) {
+                if(lessonList[lesson][typeString].toString() === id.toString()) {
+                    return true;
+                }
+            }
+            return false;
         }
     }
   }

@@ -48,18 +48,45 @@
       >
         <div v-if="item.id === 'planner'">
 
-          <span>
-            <SchoolPlanner @update-lesson-card="updateLessonCard($event)" :lessons="lessons" :timeslots="timeslots" :rooms="rooms" :teachers="teachers" :subjects="subjects" :studentGroups="studentGroups" :tableArray="tableArray" />
-          </span>
+        <span>
+            <SchoolPlanner 
+                @invoke-solve="solveNewSet()" 
+                @update-lesson-card="updateLessonCard($event)"
+                @add-new-lesson="addLessonCard($event)"
+                @invoke-stop-solve="stopSolve()"
+                :lessons="lessons" 
+                :timeslots="timeslots" 
+                :rooms="rooms" 
+                :teachers="teachers" 
+                :subjects="subjects" 
+                :studentGroups="studentGroups" 
+                :tableArray="tableArray" 
+            />
+        </span>
         </div>
         <div v-else-if="item.id === 'teachers'">
-            <SchoolPlannerTab @update-item-list="updateList($event, 'teachers')" :title="item.name" :items="teachers" />
+            <SchoolPlannerTab 
+                @update-item-list="updateList($event, 'teachers')" 
+                :title="item" 
+                :items="teachers" 
+                :lessons="lessons"
+            />
         </div>
         <div v-else-if="item.id === 'subjects'">
-            <SchoolPlannerTab @update-item-list="updateList($event, 'subjects')" :title="item.name" :items="subjects" />
+            <SchoolPlannerTab 
+                @update-item-list="updateList($event, 'subjects')" 
+                :title="item" 
+                :items="subjects"
+                :lessons="lessons"
+            />
         </div>
         <div v-else-if="item.id === 'studentGroups'">
-            <SchoolPlannerTab @update-item-list="updateList($event, 'studentGroups')" :title="item.name" :items="studentGroups" />
+            <SchoolPlannerTab 
+                @update-item-list="updateList($event, 'studentGroups')" 
+                :title="item" 
+                :items="studentGroups" 
+                :lessons="lessons"
+            />
         </div>
         <div v-else-if="item.id === 'rooms'">
           <v-card flat>
@@ -101,6 +128,8 @@
         ,{id: 'rooms', name: "教室"}
         ,{id: 'timeslots', name: "時間"}
       ],
+      isSolving: false,
+      json_data: {},
       timeslots: {},
       rooms: {},
       studentGroups: [
@@ -120,82 +149,224 @@
                   ,{id: "3", name: "English"}
                   ,{id: "4", name: "Physics"}
                 ],
-      lessons: [ {id: "1", room: "11", studentGroup: "1", subject: "1", teacher: "1", timeslot: "1"}
+      lessons: [ {id: "1", room: "11", studentGroup: "1", subject: "1", teacher: "14", timeslot: "1"}
                 ,{id: "2", room: "11", studentGroup: "1", subject: "2", teacher: "3", timeslot: "3"}
-                ,{id: "3", room: "12", studentGroup: "1", subject: "1", teacher: "2", timeslot: "1"}
-                ,{id: "4", room: "12", studentGroup: "1", subject: "2", teacher: "1", timeslot: "3"}
+                ,{id: "3", room: "12", studentGroup: "1", subject: "1", teacher: "15", timeslot: "1"}
+                ,{id: "4", room: "12", studentGroup: "1", subject: "2", teacher: "14", timeslot: "3"}
                 ,{id: "5", room: "13", studentGroup: "1", subject: "4", teacher: "3", timeslot: "6"}
-                ,{id: "6", room: "13", studentGroup: "1", subject: "4", teacher: "2", timeslot: "8"}
+                ,{id: "6", room: "13", studentGroup: "1", subject: "4", teacher: "15", timeslot: "8"}
                 ,{id: "7", room: "13", studentGroup: "2", subject: "3", teacher: "4", timeslot: "1"}
                 ,{id: "8", room: "11", studentGroup: "2", subject: "3", teacher: "4", timeslot: "6"}
-                ,{id: "9", room: "12", studentGroup: "2", subject: "1", teacher: "2", timeslot: "5"}
+                ,{id: "9", room: "12", studentGroup: "2", subject: "1", teacher: "15", timeslot: "5"}
                 ,{id: "10", room: "12", studentGroup: "2", subject: "4", teacher: "3", timeslot: "2"}
-                ,{id: "11", room: "11", studentGroup: "1", subject: "3", teacher: "1", timeslot: "2"}
-                ,{id: "12", room: "12", studentGroup: "2", subject: "1", teacher: "2", timeslot: "4"}
+                ,{id: "11", room: "11", studentGroup: "1", subject: "3", teacher: "14", timeslot: "2"}
+                ,{id: "12", room: "12", studentGroup: "2", subject: "1", teacher: "15", timeslot: "4"}
               ],
       loading: false,
       text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.',
     }),
     components: { SchoolPlanner, SchoolPlannerTab, SchoolPlannerOverlay },
-    watch: {
-        lessons:  {
-          
-          handler (newVal, oldVal) {
-            console.log(JSON.stringify(newVal, null, 2));
-            console.log(JSON.stringify(oldVal, null, 2));
-          },
-          deep: true,
-          immediate: true
-        }
-    },
     methods: {
       //pulls in default json from the java api
       getJson() {
           this.loading = true;
           axios.get("http://localhost:8080/timeTable").then(response => {
-            //this.results = response.data
-            console.log(JSON.stringify(response.data, null, 2));
-            this.initializeAPIData(response.data);
+            this.json_data = response.data
+            console.log(JSON.stringify(this.json_data, null, 2));
+            this.initializeAPIData(this.json_data);
+            console.log("Hello");
             this.loading = false;
+
           }).catch(error => {
             console.log(error);
           })
+
+      },
+      solveNewSet() {
+          if(!this.isSolving) {
+              this.isSolving = true;
+              this.loading = true;
+              axios.post("http://localhost:8080/timeTable/solve").then(response => {
+                  console.log(JSON.stringify(response, null, 2));
+                  // axios.get("http://localhost:8080/timeTable").then(response2 => {
+                  //   console.log(JSON.stringify(response2, null, 2));
+                  //   this.loading = false;
+                  // }).catch(error2 => {
+                  //   console.log(error2);
+                    
+                  // })
+                  this.loading = false;
+              }).catch(error => {
+                console.log(error);
+              })
+          }
+      },
+      stopSolve() {
+          if(this.isSolving) {
+              let newJson = {};
+              this.isSolving = false;
+              this.loading = true;
+              axios.post("http://localhost:8080/timeTable/stopSolving").then(response => {
+                  console.log(JSON.stringify(response, null, 2));
+                  axios.get("http://localhost:8080/timeTable").then(response2 => {
+                    console.log(JSON.stringify(response2, null, 2));
+                    newJson = response2.data;
+                    this.lessons = this.curateLessonData(newJson["lessonList"]);
+                    this.createTableArray(this.timeslots, this.rooms, this.lessons);
+                    this.loading = false;
+                  }).catch(error2 => {
+                    console.log(error2);
+                    
+                  })
+              }).catch(error => {
+                console.log(error);
+              })
+          }
+      },
+      apiCallAddNew(newEntry, listName) {
+          console.log(newEntry);
+          console.log(listName);
       },
       //from floating the teachers list up from teacher component and updates here
-      updateList(newList, toUpdate) {
+      updateList(args, toUpdate) {
+        console.log(JSON.stringify(args,null, 2));
+
+        let toChangeItem = args[0];
+        let postRequest = args[1];
+        let routeURL = "http://localhost:8080/" + toUpdate;
+        let listToGrab = "";
+        let newJson = {};
+
+        console.log(toChangeItem);
+
         switch (toUpdate) {
-          case "teachers":
-            this.teachers = newList;
-            break;
-          case "subjects":
-            this.subjects = newList;
-            break;
-          case "studentGroups":
-            this.studentGroups = newList;
-            break;
-          default:
-            //do nothing
+            case "teachers":
+                listToGrab = "teacherList";
+                break;
+            case "rooms":
+                listToGrab = "roomList";
+                break;
+            case "subjects":
+                listToGrab = "subjectList";
+                break;
+            default:
+                break;
         }
-        this.lessons = [];
-        console.log(JSON.stringify(this.lessons,null,2));
+
+        switch (postRequest) {
+            case "post":
+              this.loading = true;
+              axios.post(routeURL, {"name": toChangeItem}).then(response => {
+                    console.log(JSON.stringify(response, null, 2));
+                    axios.get("http://localhost:8080/timeTable").then(response2 => {
+                        console.log(JSON.stringify(response2, null, 2));
+                        newJson = response2.data;
+                        this[toUpdate] = this.initializeListToObject(newJson[listToGrab]);
+                        console.log(JSON.stringify(this[toUpdate], null, 2)); 
+                        this.loading = false;
+                    }).catch(error2 => {
+                        console.log(error2);
+                    })
+
+                    this.loading = false;
+                }).catch(error => {
+                  console.log(error);
+                })
+
+                break;
+            case "put":
+                console.log("Now working");
+                this.loading = true;
+                routeURL = routeURL + "/" + toChangeItem.id;
+                axios.put(routeURL, toChangeItem).then(response => {
+                      console.log(JSON.stringify(response, null, 2));
+                      axios.get("http://localhost:8080/timeTable").then(response2 => {
+                          console.log(JSON.stringify(response2, null, 2));
+                          newJson = response2.data;
+        
+                          this[toUpdate] = this.initializeListToObject(newJson[listToGrab]);
+                          console.log(JSON.stringify(this[toUpdate], null, 2)); 
+                          this.loading = false;
+                      }).catch(error2 => {
+                          console.log(error2);
+                      })
+
+                    this.loading = false;
+                }).catch(error => {
+                  console.log(error);
+                })
+
+                break;
+            case "delete":
+                this.loading = true;
+                routeURL = routeURL + "/" + toChangeItem.id;
+                console.log(routeURL);
+                axios.delete(routeURL).then(response => {
+                      console.log(JSON.stringify(response, null, 2));
+                      axios.get("http://localhost:8080/timeTable").then(response2 => {
+                          console.log(JSON.stringify(response2, null, 2));
+                          newJson = response2.data;
+        
+                          this[toUpdate] = this.initializeListToObject(newJson[listToGrab]);
+                          console.log(JSON.stringify(this[toUpdate], null, 2)); 
+                          this.loading = false;
+                      }).catch(error2 => {
+                          console.log(error2);
+                      })
+
+                    this.loading = false;
+                })
+                break;
+            default:
+                break;
+        }
 
       },
       //initializes all the main data variables from the java api
       initializeAPIData(json_data) {
         //translate timeslot into something more concise and readable
         this.timeslots = this.translateTimeslots(json_data["timeslotList"]);
-
+      
         //set the other arrays here
         this.rooms = this.initializeListToObject(json_data["roomList"]);
-        this.teachers = this.initializeListToObject(this.teachers);
-        this.subjects = this.initializeListToObject(this.subjects);
-        this.studentGroups = this.initializeListToObject(this.studentGroups);
-        //this.lessons = this.initializeListToObject(this.lessons);
+        this.teachers = this.initializeListToObject(json_data["teacherList"]);
+        this.subjects = this.initializeListToObject(json_data["subjectList"]);
+        this.studentGroups = this.initializeListToObject(json_data["studentGroupList"]);
+        this.lessons = this.curateLessonData(json_data["lessonList"]);
+        console.log(JSON.stringify(this.lessons, null, 2));
 
         //initialize the 2d array to print into the array
         this.createTableArray(this.timeslots, this.rooms, this.lessons);
       },
-      
+      //function to curate the Lesson data that would assign all names to the corresponding teacher, studentGroup arrays
+      curateLessonData(lessonList) {
+          let returnList = [];
+          let newObject = {};
+          let timeslotTemp = {};
+          let roomTemp = {};
+          for(let i = 0; i < lessonList.length; ++i) {
+              if(lessonList[i].timeslot) {
+                  timeslotTemp = lessonList[i].timeslot.id;
+              } else {
+                  timeslotTemp = "";
+              }
+              if(lessonList[i].room) {
+                  roomTemp = lessonList[i].room.id;
+              } else {
+                  roomTemp = "";
+              }
+              newObject = {
+                  id: lessonList[i].id
+                  ,subject: lessonList[i].subject
+                  ,teacher: lessonList[i].teacher
+                  ,studentGroup: lessonList[i].studentGroup
+                  ,timeslot: timeslotTemp
+                  ,room: roomTemp
+              }
+              returnList.push(newObject);
+          }
+          return returnList;
+      },
       //for transitioning the room array into object for easier book keeping
       initializeListToObject(arrayList) {
         let newObject = {};
@@ -215,9 +386,32 @@
             }
         }
         //simply update the event passed up
-        this.lessons = [];
+        this.createTableArray(this.timeslots, this.rooms, this.lessons);
 
         console.log(JSON.stringify(this.lessons, null, 2));
+      },
+      addLessonCard(event) {
+          console.log(event);
+          let routeURL = "http://localhost:8080/lessons";
+          let newJson = {};
+          this.loading = true;
+          axios.post(routeURL, event).then(response => {
+                console.log(JSON.stringify(response, null, 2));
+                axios.get("http://localhost:8080/timeTable").then(response2 => {
+                    console.log(JSON.stringify(response2, null, 2));
+                    newJson = response2.data;
+                    this["lessons"] = this.initializeListToObject(newJson["lessonList"]);
+                    console.log(JSON.stringify(this["lessons"], null, 2)); 
+                    //this.createTableArray(this.timeslots, this.rooms, this.lessons);
+                    this.loading = false;
+                }).catch(error2 => {
+                    console.log(error2);
+                })
+
+                this.loading = false;
+            }).catch(error => {
+              console.log(error);
+            })
       },
       //creates readable clockstring in format HH:mm by attending 0s if necessary
       createClockString(hourString, minuteString) {
@@ -319,7 +513,9 @@
 
         //fill in the table with the lessons
         for (const lesson in lessons) {
-          newTableArray[lessons[lesson]["timeslot"]][lessons[lesson]["room"]] = lessons[lesson]; 
+            if(lessons[lesson]["timeslot"] && lessons[lesson]["room"]) {
+                newTableArray[lessons[lesson]["timeslot"]][lessons[lesson]["room"]] = lessons[lesson]; 
+            }
         }
         
         //console.log(JSON.stringify(newTableArray, null, 2));
