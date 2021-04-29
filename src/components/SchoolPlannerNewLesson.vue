@@ -6,7 +6,7 @@
             @click="handleOpenAddDialog()"
         >
             Add New Lesson
-                    <v-dialog
+        <v-dialog
             v-model="dialog"
             width="50vh"
             height="100vh"
@@ -133,14 +133,14 @@
                 this.newTeacher = this.teachers ? {id: this.teachers[Object.keys(this.teachers)[0]].id, name: this.teachers[Object.keys(this.teachers)[0]].name} : {id: "", name: ""};
                 this.newSubject = this.subjects ? {id: this.subjects[Object.keys(this.subjects)[0]].id, name: this.subjects[Object.keys(this.subjects)[0]].name}  : {id: "", name: ""};
                 this.newStudentGroup = this.studentGroups ? {id: this.studentGroups[Object.keys(this.studentGroups)[0]].id, name: this.studentGroups[Object.keys(this.studentGroups)[0]].name}  : {id: "", name: ""};
-                this.newRoom = {id: "", name: ""};
-                //this.newTimeslot = this.timeslots ? this.timeslots[Object.keys(this.timeslots)[0]] : {id: "", name: ""};
+                this.newRoom = {id: "", name: "N/A"};
+                this.newTimeslot = {id: "", name: "N/A"};
 
                 this.dialog = true;
             },
             handleAddNewLesson() {
                 let newLessonObject = {};
-
+                console.log(JSON.stringify(this.timeslots, null, 2));
                 newLessonObject = { 
                                     teacher: this.newTeacher.id
                                     ,subject: this.newSubject.id

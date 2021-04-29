@@ -20,23 +20,29 @@
 
                    <v-col cols="12">
                         <v-select
-                          :items="['0-17', '18-29', '30-54', '54+']"
+                          :items="this.translateToArray(timeslots, 1)"
+                          item-text="name"
+                          item-value="id"
+                          v-model="currentTimeslot.id"
                           label="Time slot"
-                          
+                          required
                         ></v-select>
                     </v-col>
 
                    <v-col cols="12">
                         <v-select
-                          :items="['0-17', '18-29', '30-54', '54+']"
+                          :items="this.translateToArray(rooms, 1)"
+                          item-text="name"
+                          item-value="id"
+                          v-model="currentRoom.id"
                           label="Room"
-                          
+                          required    
                         ></v-select>
                     </v-col>
 
                     <v-col cols="12">
                         <v-select
-                          :items="this.translateToArray(subjects)"
+                          :items="this.translateToArray(subjects, 0)"
                           item-text="name"
                           item-value="id"
                           v-model="currentSubject.id"
@@ -47,7 +53,7 @@
 
                     <v-col cols="12">
                         <v-select
-                          :items="this.translateToArray(teachers)"
+                          :items="this.translateToArray(teachers, 0)"
                           item-text="name"
                           item-value="id"
                           v-model="currentTeacher.id"
@@ -58,7 +64,7 @@
 
                     <v-col cols="12">
                         <v-select
-                          :items="this.translateToArray(studentGroups)"
+                          :items="this.translateToArray(studentGroups, 0)"
                           item-text="name"
                           item-value="id"
                           v-model="currentStudentGroup.id"
@@ -115,17 +121,22 @@
     },
     methods: {
         //translate obj to array to be used in select
-        translateToArray (obj) {
-            let newArray = []
-            for (const key in obj) {
-                newArray.push(obj[key]);
-            }
-            return newArray;
-        },
+          translateToArray (obj, addNull) {
+              let newArray = []
+              if(addNull) {
+                  newArray.push({id: "", name: "N/A"});
+              }
+              for (const key in obj) {
+                  newArray.push(obj[key]);
+              }
+              return newArray;
+          },
         handleDialogOpen() {
             this.currentSubject = {id: this.subjects[this.lesson.subject].id, name: this.subjects[this.lesson.subject].name};
             this.currentTeacher = {id: this.teachers[this.lesson.teacher].id, name: this.teachers[this.lesson.teacher].name};
             this.currentStudentGroup = {id: this.studentGroups[this.lesson.studentGroup].id, name: this.studentGroups[this.lesson.studentGroup].name}
+            this.currentTimeslot = {id: this.timeslots[this.lesson.timeslot].id, name: this.timeslots[this.lesson.timeslot].name}
+            this.currentRoom = {id: this.rooms[this.lesson.room].id, name: this.rooms[this.lesson.room].name}
             this.dialog = true;
         },
         onSelectionSubmit () {

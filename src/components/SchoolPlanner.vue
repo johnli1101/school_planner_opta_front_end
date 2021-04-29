@@ -41,11 +41,19 @@
                         :key="key"
                     >
                         <td>
-                            <h3>{{timeslots[key].dayOfWeekName}} {{timeslots[key].startTime}} - {{timeslots[key].endTime}}</h3>
+                            <h3>{{timeslots[key].name}}</h3>
                         </td>
                         <td v-for="(lesson, key) in time"
                             :key="key"  >
-                            <SchoolPlannerLessonCard @updated-lesson="passLessonUp(lesson, $event)" v-if="lesson['id']" :currentSubject="subjects[lesson.subject]" :lesson="lesson" :teachers="teachers" :subjects="subjects" :studentGroups="studentGroups" :timeslots="timeslots" :rooms="rooms" />
+                            <SchoolPlannerLessonCard 
+                                @updated-lesson="passLessonUp(lesson, $event)" 
+                                v-if="lesson['id']" 
+                                :lesson="lesson" 
+                                :teachers="teachers" 
+                                :subjects="subjects" 
+                                :studentGroups="studentGroups" 
+                                :timeslots="timeslots" 
+                                :rooms="rooms" />
                         </td>
                     </tr>
                 </tbody>
